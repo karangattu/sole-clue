@@ -371,7 +371,7 @@ nav { display: flex; align-items: center; gap: 1.65rem; }
   border: 1px solid var(--line);
   border-radius: .85rem;
 }
-.habitat-picture img { height: 10rem; object-fit: cover; }
+.habitat-picture img { aspect-ratio: 3 / 2; object-fit: cover; }
 .habitat-picture figcaption {
   display: flex;
   align-items: center;

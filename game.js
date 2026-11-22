@@ -3,6 +3,7 @@ import { birds, habitats } from './birds.js';
 const game = document.querySelector('#game');
 const landing = document.querySelector('#landing');
 const navPlay = document.querySelector('#nav-play');
+const questionsPerGame = 4;
 let rounds = [];
 let guesses = [];
 let roundIndex = 0;
@@ -30,8 +31,7 @@ function focusHeading(heading, scrollToTop = true) {
 }
 
 function startGame() {
-  const [firstBird, ...otherBirds] = birds;
-  rounds = [firstBird, ...shuffle(otherBirds)].map(bird => ({
+  rounds = shuffle(birds).slice(0, questionsPerGame).map(bird => ({
     ...bird,
     choices: shuffle([bird.habitat, ...bird.distractors]),
   }));
@@ -49,7 +49,7 @@ function showClue() {
 
   game.innerHTML = `
     <div class="round-tracker">
-      <span>Round ${roundIndex + 1} of ${rounds.length}</span>
+      <span id="question-progress">Question ${roundIndex + 1} of ${rounds.length}</span>
       <div class="steps" aria-hidden="true">${steps}</div>
     </div>
     <div class="round-layout">
@@ -58,7 +58,7 @@ function showClue() {
         <figcaption><span class="plate-rule"></span> Mystery feet <span class="plate-rule"></span></figcaption>
       </figure>
       <div class="round-panel">
-        <h1 id="round-title" tabindex="-1">Which habitat fits?</h1>
+        <h1 id="round-title" tabindex="-1" aria-describedby="question-progress">Which habitat fits?</h1>
         <p>Look at the feet. Choose the habitat where they’d be most useful.</p>
         <div class="choices" role="group" aria-labelledby="round-title">
           ${round.choices.map((id, index) => `
@@ -75,7 +75,7 @@ function showClue() {
     choice.addEventListener('click', () => showReveal(choice.dataset.habitat));
   });
   const next = rounds[roundIndex + 1];
-  for (const file of ['habitat-' + round.habitat, ...(next ? ['feet-' + next.id] : [])]) {
+  for (const file of ['reveal-' + round.id, ...(next ? ['feet-' + next.id] : [])]) {
     new Image().src = './assets/art/' + file + '.webp';
   }
   focusHeading(game.querySelector('h1'));
@@ -99,10 +99,10 @@ function showReveal(guess) {
     <p class="answer-habitat" id="answer-habitat">${habitat.name}</p>
     <p class="adaptation">${round.adaptation} <a href="${round.guide}" target="_blank" rel="noopener">Bird guide<span class="sr-only"> (opens in a new tab)</span></a></p>
     <figure class="habitat-picture">
-      ${art('habitat-' + round.habitat, habitat.alt)}
+      ${art('reveal-' + round.id, round.scene)}
       <figcaption>${icon('pin')} <a href="${habitat.url}" target="_blank" rel="noopener">${habitat.place}<span class="sr-only"> (opens in a new tab)</span></a></figcaption>
     </figure>
-    <button type="button" class="button next">${roundIndex + 1 === rounds.length ? 'See my score' : 'Next round'}</button>`;
+    <button type="button" class="button next">${roundIndex + 1 === rounds.length ? 'See my score' : 'Next question'}</button>`;
 
   game.querySelector('.next').addEventListener('click', () => {
     roundIndex++;
@@ -118,7 +118,7 @@ function showScore() {
   const score = guesses.filter(Boolean).length;
   game.innerHTML = `
     <div class="score-card">
-      <p class="eyebrow">${icon('track')} All ${rounds.length} rounds complete</p>
+      <p class="eyebrow">${icon('track')} All ${rounds.length} questions complete</p>
       <h1 tabindex="-1" aria-describedby="score-label">${score}<span> / ${rounds.length}</span></h1>
       <p id="score-label">Habitats matched</p>
       <ol class="score-list">
